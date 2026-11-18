@@ -6,17 +6,6 @@ Interaktívna mapa kvality ovzdušia v Žiline z otvorených dát mesta, porovna
 
 🌐 **Online:** https://sugarpowered.github.io/zilina-air-quality-heatmap/
 
-## 🗺️ Čo mapa ukazuje
-
-- **7 znečisťujúcich látok** ako prepínateľné vrstvy: PM1, PM2.5, PM4, PM10, NO₂, SO₂, CO.
-- **Farba = denný priemer ÷ 24-hodinová odporúčaná hodnota WHO 2021.** Modrá je pod odporúčaním, červená nad ním (horšia kvalita ovzdušia, vyššie zdravotné riziko). PM1 a PM4 nemajú hodnotu WHO, preto sa použijú hodnoty pre PM2.5 a PM10.
-- **Posuvník dní** s tlačidlami **Prehrať** a **Najnovší ⏭**. Šípky ← / → na klávesnici posúvajú o deň.
-- **Prepínač obdobia:** *Obe siete* (od 9. 10. 2025, predvolené) alebo *Celé obdobie* (od 6. 10. 2023). Pred októbrom 2025 meria len 8 mestských staníc.
-- **Počet senzorov**, napr. „52 z 123 senzorov · 4 nad odporúčaním“: koľko senzorov meralo z tých, ktoré boli k danému dňu nainštalované.
-- **Interpolovaná plocha** sa kreslí, len keď meria aspoň 20 senzorov. NO₂, SO₂ a CO meria len 8 mestských staníc, preto sa zobrazujú iba ako body.
-- Po prejdení myšou nad senzorom sa zobrazí jeho hodnota. Zbalená časť **ℹ️ O dátach** obsahuje čas posledného merania, tabuľku hodnôt v daný deň a krátky popis metodiky.
-- Plocha sa medzi dňami plynulo prelína. Na mobile je panel vysúvací a dá sa zbaliť ťuknutím na úchyt.
-
 ## 🚀 Spustenie
 
 🐍 Potrebuješ Python 3.10 alebo novší. Príkazy spúšťaj v priečinku projektu.
