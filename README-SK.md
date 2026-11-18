@@ -36,13 +36,17 @@ V prehliadači otvor **http://localhost:8000**. Server zastavíš klávesmi `Ctr
 
 ⚠️ Súbor `index.html` neotváraj priamo dvojklikom, lebo by sa nenačítala mapa OpenStreetMap.
 
-## 🔄 Čerstvé dáta z API mesta (voliteľné)
+## 🔄 Aktuálne dáta
 
-Bez ďalších parametrov sa použijú archivované dáta z `docs/` (do 25. 3. 2026). Ak chceš aktuálne dáta, v kroku 2 spusti namiesto prvého príkazu:
+Bez ďalších parametrov sa použijú archivované dáta z `docs/` (do 25. 3. 2026). Ak chceš pridať novšie merania z Open Data API mesta, v kroku 2 spusti namiesto prvého príkazu:
 
 ```bash
-python scripts/prepare_data.py --source api --start 2025-10-08 --end 2026-11-18
+python scripts/prepare_data.py --update
 ```
+
+Stiahne len hodiny novšie, než aké už sú v `data/`, takže archív `docs/` nepotrebuje. Ak API nie je dostupné, skončí so správou a `data/` nezmení.
+
+Na GitHube to beží automaticky každý deň ([.github/workflows/update-data.yml](.github/workflows/update-data.yml)): nové dáta sa commitnú a mapa sa znova nasadí. Mapa zobrazuje čas posledného merania a tlačidlo **Najnovší ⏭** preskočí na najnovší deň.
 
 ## 📁 Čo kde je
 

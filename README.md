@@ -36,13 +36,17 @@ Open **http://localhost:8000** in your browser. Stop the server with `Ctrl+C`.
 
 ⚠️ Don't open `index.html` by double-clicking it. The OpenStreetMap background won't load from a local file.
 
-## 🔄 Fresh data from the city API (optional)
+## 🔄 Recent data
 
-By default the scripts use the archived data in `docs/` (up to 25 March 2026). For current data, replace the first command in step 2 with:
+By default the scripts use the archived data in `docs/` (up to 25 March 2026). To add newer measurements from the city's Open Data API, replace the first command in step 2 with:
 
 ```bash
-python scripts/prepare_data.py --source api --start 2025-10-08 --end 2026-11-18
+python scripts/prepare_data.py --update
 ```
+
+It downloads only the hours newer than the data already in `data/`, so the `docs/` archive isn't needed. If the API is unavailable, it stops with a message and leaves `data/` unchanged.
+
+On GitHub this runs automatically every day ([.github/workflows/update-data.yml](.github/workflows/update-data.yml)): new data is committed and the map is redeployed. The map shows the time of the last measurement, and the **Najnovší ⏭** button jumps to the newest day.
 
 ## 📁 What's where
 

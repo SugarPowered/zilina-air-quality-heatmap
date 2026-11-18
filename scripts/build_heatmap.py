@@ -8,6 +8,7 @@ Then serve the folder (OpenStreetMap tiles need an http Referer):
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -58,6 +59,8 @@ def main() -> None:
 
     payload = {
         "generated_from": "Žilina Open Data Portal (Invipo), hourly history -> daily means",
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+        "last_measurement": h["timestamp"].max().strftime("%Y-%m-%dT%H:%MZ"),
         "min_hours_per_day": MIN_HOURS_PER_DAY,
         "guidelines": GUIDELINES,
         "days": days,

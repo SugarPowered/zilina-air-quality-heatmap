@@ -1,0 +1,55 @@
+# Daily: fetch new hourly measurements from the Žilina Open Data API, rebuild the map data,
+# commit them to main and redeploy GitHub Pages. If the API is down, the run fails with a clear
+# message and nothing is committed (the map keeps showing the last available data).
+name: Update recent data
+
+on:
+  schedule:
+    - cron: "15 5 * * *"   # 05:15 UTC daily (06:15/07:15 in Žilina)
+  workflow_dispatch:
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Fetch new measurements
+        run: python scripts/prepare_data.py --update
+      - name: Rebuild heatmap data
+        run: python scripts/build_heatmap.py
+      - name: Commit if data changed
+        id: commit
+        run: |
+          if git diff --quiet -- data/pm_hourly.csv.gz; then
+            echo "No new measurements."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data heatmap/data.js
+          git commit -m "Update air-quality data to $(date -u +%Y-%m-%d)"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

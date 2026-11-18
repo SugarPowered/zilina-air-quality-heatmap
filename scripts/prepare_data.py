@@ -14,6 +14,7 @@ Usage
   python scripts/prepare_data.py                                   # local archive
   python scripts/prepare_data.py --source api --start 2025-10-08 --end 2026-11-01
   python scripts/prepare_data.py --window 2025-10-08 2026-03-25    # aggregation window
+  python scripts/prepare_data.py --update        # append only new hours from the API to data/
 """
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ VALID_RANGE = (0, 1000)                                    # µg/m³, outside ->
 VALID_MAX = {"co": 30000}                                  # CO is legitimately > 1000 µg/m³
 # Overlap of both networks (Agdata since 2023-10, Lightnet since 2025-10) in the local archive.
 DEFAULT_WINDOW = ("2025-10-08", "2026-03-25")
+GZIP = {"method": "gzip", "mtime": 0}   # deterministic bytes -> no git diff when data is unchanged
 MIN_COVERAGE = 0.30        # share of hours with PM10 inside the window
 PLAUSIBLE_MEAN_PM10 = (2, 150)
 WHO_24H = {"pm25": 15, "pm10": 45}   # WHO 2021 daily guideline
@@ -94,6 +96,21 @@ def classify(st: pd.DataFrame) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------- history
+def check_api(sid: str) -> None:
+    """Fail fast with a clear message instead of retrying 145 stations against a dead API."""
+    now = datetime.now(timezone.utc)
+    body = {"itemId": [sid], "type": "hourly",
+            "from": (now - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S.000Z"),
+            "to": now.strftime("%Y-%m-%d %H:%M:%S.000Z")}
+    try:
+        r = requests.post(API_HISTORY, json=body, timeout=60)
+        r.raise_for_status()
+        if not isinstance(r.json(), list):
+            raise ValueError(f"unexpected response: {r.text[:200]}")
+    except (requests.RequestException, ValueError) as e:
+        raise SystemExit(f"Open Data API is not available ({e}). Existing data left unchanged.")
+
+
 def history_api(ids: list[str], start: str, end: str, chunk_days: int = 30) -> pd.DataFrame:
     """One request per station per chunk (the response carries no station id)."""
     out = []
@@ -187,18 +204,76 @@ def aggregate(h: pd.DataFrame, st: pd.DataFrame, window: tuple[str, str]) -> pd.
     return out.sort_values("pm10_mean", ascending=False)
 
 
+# ---------------------------------------------------------------- incremental update
+RECENT_WINDOW_DAYS = 180   # heatmap_points window after an update: the last ~6 months
+
+
+def update_recent() -> None:
+    """Append hours newer than the committed data/ from the API. Needs no docs/ archive,
+    so it also runs in GitHub Actions. Leaves data/ untouched if the API is down."""
+    hourly_path, st_path = DATA / "pm_hourly.csv.gz", DATA / "stations.csv"
+    if not hourly_path.exists() or not st_path.exists():
+        raise SystemExit("data/ is empty. Run a full prepare first (local or --source api).")
+
+    old_st = pd.read_csv(st_path)
+    pm_ids = sorted(old_st.loc[old_st["kind"] != "meteo_only", "id"])
+    check_api(pm_ids[0])
+
+    try:   # refresh the station list (new sensors, status); keep known addresses
+        st = classify(stations_api())
+        st["address"] = st["address"].fillna(st["id"].map(old_st.set_index("id")["address"]))
+        print(f"stations <- api ({len(st)})")
+    except (requests.RequestException, ValueError) as e:
+        print(f"  ! station list not refreshed ({e}), keeping data/stations.csv")
+        st = old_st
+    pm_ids = sorted(set(st.loc[st["kind"] != "meteo_only", "id"]))
+
+    old = pd.read_csv(hourly_path, parse_dates=["timestamp"])
+    start = (old["timestamp"].max() - pd.Timedelta(days=1)).strftime("%Y-%m-%d")   # 1-day overlap
+    end = (datetime.now(timezone.utc) + timedelta(hours=1)).strftime("%Y-%m-%dT%H:00:00")
+    print(f"history <- api {start} .. {end} ({len(pm_ids)} PM sensors)")
+    new = clean_hourly(history_api(pm_ids, start, end, chunk_days=15), set(pm_ids))
+    if new.empty:
+        raise SystemExit("API returned no new measurements. Existing data left unchanged.")
+
+    h = (pd.concat([old, new], ignore_index=True)
+         .drop_duplicates(["station_id", "timestamp"], keep="last")   # newer API values win
+         .sort_values(["station_id", "timestamp"]))
+    st.to_csv(st_path, index=False)
+    h.to_csv(hourly_path, index=False, compression=GZIP)
+    added = len(h) - len(old)
+    print(f"hourly rows: {len(h):,} (+{added:,})  range: {h['timestamp'].min()} .. {h['timestamp'].max()}")
+
+    last = h["timestamp"].max()
+    window = ((last - pd.Timedelta(days=RECENT_WINDOW_DAYS)).strftime("%Y-%m-%d"), last.strftime("%Y-%m-%d"))
+    pts = aggregate(h, st, window)
+    pts.to_csv(DATA / "heatmap_points.csv", index=False)
+    print(f"heatmap points: {pts['qc_ok'].sum()} usable / {len(pts)}  (window {window[0]}..{window[1]})")
+
+
 # ---------------------------------------------------------------- main
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--source", choices=["local", "api"], default="local")
+    ap.add_argument("--update", action="store_true",
+                    help="append only new hours from the API to existing data/ (used by the daily job)")
     ap.add_argument("--start", default=DEFAULT_WINDOW[0], help="API download start (UTC date)")
     ap.add_argument("--end", default=datetime.now(timezone.utc).strftime("%Y-%m-%d"), help="API download end")
     ap.add_argument("--window", nargs=2, metavar=("FROM", "TO"), help="aggregation window (default: overlap)")
     a = ap.parse_args()
     DATA.mkdir(exist_ok=True)
+    if a.update:
+        return update_recent()
 
     print(f"stations <- {a.source}")
-    st = classify(stations_api() if a.source == "api" else stations_local())
+    if a.source == "api":
+        try:
+            st = classify(stations_api())
+        except (requests.RequestException, ValueError) as e:
+            raise SystemExit(f"Open Data API is not available ({e}).")
+        check_api(st.loc[st["measurements"].str.contains("airPm10", na=False), "id"].iloc[0])
+    else:
+        st = classify(stations_local())
     st.to_csv(DATA / "stations.csv", index=False)
     print(st.groupby("kind").size().to_string())
 
@@ -206,7 +281,7 @@ def main() -> None:
     print(f"history <- {a.source} ({len(pm_ids)} PM sensors)")
     raw = history_api(sorted(pm_ids), a.start, a.end) if a.source == "api" else history_local()
     h = clean_hourly(raw, pm_ids)
-    h.to_csv(DATA / "pm_hourly.csv.gz", index=False)
+    h.to_csv(DATA / "pm_hourly.csv.gz", index=False, compression=GZIP)
     print(f"hourly rows: {len(h):,}  range: {h['timestamp'].min()} .. {h['timestamp'].max()}")
 
     window = tuple(a.window) if a.window else (DEFAULT_WINDOW if a.source == "local" else (a.start, a.end))
