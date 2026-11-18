@@ -114,7 +114,8 @@ python -m http.server -d heatmap 8000      # open http://localhost:8000 (OSM til
 - Each pollutant is a switchable layer. The colour shows the daily mean ÷ the WHO 2021 24-h guideline, on a diverging log scale from 0.25× to 4×, centred at 1× (blue below, red above).
 - A day slider with play controls picks the day. The map shows the sensor points, a hover tooltip, and a table of that day's values.
 - PM1 and PM4 have no WHO guideline, so they use the PM2.5 and PM10 guidelines as a proxy, flagged in the UI.
-- The surface is IDW on log₂(ratio), masked to 1.2 km around sensors (3 km when only the 8 city stations report).
+- The surface is IDW on log₂(ratio), masked to 1.2 km around sensors, and drawn only when at least 20 sensors report that day. NO₂, SO₂, CO and PM before October 2025 (8 city stations only) show points only.
+- A period toggle switches between "both networks" (from October 2025, default) and the full period (from October 2023). The day counter shows "X of Y sensors measuring …", where Y counts sensors already installed on that day.
 - Online: https://sugarpowered.github.io/zilina-air-quality-heatmap/
 
 ## 8. Next steps

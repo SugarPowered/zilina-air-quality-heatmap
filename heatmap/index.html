@@ -40,6 +40,10 @@
   .seg button { padding: 7px 0; border: 1px solid var(--border); white-space: nowrap;
     background: var(--surface-2); color: var(--text-1); border-radius: 8px; cursor: pointer;
     font: inherit; font-size: 12.5px; font-weight: 600; }
+  .seg.two { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
+  .seg.two button { font-size: 12px; font-weight: 600; white-space: normal; line-height: 1.25; padding: 6px 4px; }
+  .seg.two small { display: block; font-weight: 400; opacity: .85; }
+  .toggles label.off { color: var(--text-3); cursor: default; }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .seg button:focus-visible, .ctl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .guide { margin-top: 8px; font-size: 13px; color: var(--text-2); }
@@ -103,6 +107,10 @@
   <div class="guide" id="guide"></div>
 
   <div class="label">Deň</div>
+  <div class="seg two" id="periods" role="group" aria-label="Obdobie">
+    <button data-period="both">Obe siete<small id="per-both"></small></button>
+    <button data-period="all">Celé obdobie<small id="per-all"></small></button>
+  </div>
   <div class="date-row"><span class="date" id="date"></span><span class="count" id="count"></span></div>
   <input type="range" id="slider" min="0" value="0" aria-label="Deň">
   <div class="range-ends"><span id="d0"></span><span id="d1"></span></div>
@@ -116,7 +124,7 @@
 
   <div class="label">Vrstvy</div>
   <div class="toggles">
-    <label><input type="checkbox" id="t-surface" checked> Interpolovaná plocha</label>
+    <label id="l-surface"><input type="checkbox" id="t-surface" checked> Interpolovaná plocha</label>
     <label><input type="checkbox" id="t-lightnet" checked> Nízkonákladové senzory na stĺpoch osvetlenia (Lightnet)</label>
     <label><input type="checkbox" id="t-nodata"> Senzory bez údajov v daný deň</label>
   </div>
@@ -143,9 +151,10 @@
     <div class="note">
       <p><b>Údaje:</b> hodinová história senzorov z Open Data portálu mesta Žilina, spriemerovaná za každý senzor a kalendárny deň (miestny čas). Deň sa započíta, len ak má aspoň 18 platných hodín.</p>
       <p><b>Odporúčané hodnoty (24 h, µg/m³):</b> PM2.5 15, PM10 45, NO₂ 25, SO₂ 40, CO 4000. Pre PM1 a PM4 WHO hodnotu neuvádza, preto sa použije hodnota frakcie, ktorej sú súčasťou (PM2.5 a PM10).</p>
-      <p><b>Plocha:</b> interpolácia vážená inverznou vzdialenosťou (IDW) na logaritme pomeru. Je to odhad a zobrazuje sa len v blízkosti senzorov (1,2 km, keď meria veľa senzorov; 3 km, keď merajú len 8 mestských staníc).</p>
+      <p><b>Plocha:</b> interpolácia vážená inverznou vzdialenosťou (IDW) na logaritme pomeru. Je to odhad a zobrazuje sa len do 1,2 km od senzorov. Kreslí sa, len keď v daný deň meria aspoň 20 senzorov. Pri NO₂, SO₂, CO a pri prachových časticiach pred októbrom 2025 meria len 8 mestských staníc, preto mapa ukazuje iba body.</p>
+      <p><b>Obdobie:</b> „Obe siete“ začína prvým celým dňom dát Lightnet (október 2025), keď k 8 mestským staniciam pribudli senzory na stĺpoch osvetlenia. „Celé obdobie“ siaha do októbra 2023, ale dovtedy merajú len mestské stanice.</p>
       <p><b>Senzory na stĺpoch osvetlenia</b> sú nekalibrované nízkonákladové optické senzory. Ich hodnoty PM2.5 a PM10 sú takmer rovnaké. Berte ich ako relatívne rozdiely, nie presné koncentrácie.</p>
-      <p><b>NO₂, SO₂, CO</b> merá len 8 mestských staníc. Hodnoty SO₂ sú blízko hranice detekcie.</p>
+      <p><b>NO₂, SO₂, CO</b> meria len 8 mestských staníc. Hodnoty SO₂ sú blízko hranice detekcie.</p>
     </div>
   </details>
 </aside>
@@ -190,8 +199,22 @@
     }
   }
 
+  // first day each station reported each pollutant -> "installed" sensors for the "X z Y" count
+  const firstDay = {};
+  for (const p of POLS) {
+    const f = firstDay[p] = new Map();
+    for (const [d, s] of D.values[p]) if (!f.has(s) || d < f.get(s)) f.set(s, d);
+  }
+  // "both networks" period starts on the first day a Lightnet sensor reports PM10
+  const isLightnet = i => ST[i].kind === "lightnet_pm";
+  let BOTH_START = 0;
+  { let m = Infinity; for (const [s, d] of firstDay.pm10) if (isLightnet(s) && d < m) m = d;
+    if (m !== Infinity) BOTH_START = m; }
+  const MIN_SURFACE = 20;   // fewer reporting sensors -> points only, no interpolated surface
+
   // ---------- state
-  const state = { pol: "pm10", day: 0, surface: true, lightnet: true, nodata: false, playing: null };
+  const state = { pol: "pm10", day: 0, period: "both", surface: true, lightnet: true, nodata: false, playing: null };
+  const minDay = () => state.period === "both" ? BOTH_START : 0;
   // start on the latest day where many sensors report PM10
   for (let d = D.days.length - 1; d >= 0; d--) {
     const m = byDay.pm10.get(d); if (m && m.size >= 50) { state.day = d; break; }
@@ -223,8 +246,8 @@
 
   function drawSurface(pts) {
     img.data.fill(0);
-    if (state.surface && pts.length >= 3) {
-      const R = pts.length >= 20 ? 1.2 : 3.0, MAX_A = 0.68;
+    if (state.surface && pts.length >= MIN_SURFACE) {
+      const R = 1.2, MAX_A = 0.68;
       const px = pts.map(p => (p.lon - B.w) * KM_LON), py = pts.map(p => (B.n - p.lat) * KM_LAT);
       const pv = pts.map(p => Math.log2(p.ratio));
       const cw = (B.e - B.w) * KM_LON / COLS, ch = (B.n - B.s) * KM_LAT / ROWS;
@@ -271,13 +294,23 @@
   const slider = $("slider");
   slider.max = D.days.length - 1;
   const fmtShort = s => new Date(s + "T12:00:00").toLocaleDateString("sk-SK");
-  $("d0").textContent = fmtShort(D.days[0]); $("d1").textContent = fmtShort(D.days[D.days.length - 1]);
+  $("d1").textContent = fmtShort(D.days[D.days.length - 1]);
+  $("per-both").textContent = "od " + fmtShort(D.days[BOTH_START]);
+  $("per-all").textContent = "od " + fmtShort(D.days[0]);
+  for (const b of $("periods").children) b.onclick = () => {
+    state.period = b.dataset.period;
+    state.day = Math.max(state.day, minDay());
+    render();
+  };
   slider.oninput = () => { state.day = +slider.value; render(); };
   $("prev").onclick = () => step(-1);
   $("next").onclick = () => step(1);
   $("play").onclick = () => {
     if (state.playing) { clearInterval(state.playing); state.playing = null; }
-    else state.playing = setInterval(() => { if (state.day >= D.days.length - 1) $("play").click(); else step(1); }, 450);
+    else {
+      if (state.day >= D.days.length - 1) state.day = minDay();   // replay from the period start
+      state.playing = setInterval(() => { if (state.day >= D.days.length - 1) $("play").click(); else step(1); }, 450);
+    }
     $("play").textContent = state.playing ? "❚❚ Pauza" : "▶ Prehrať";
     $("play").setAttribute("aria-label", state.playing ? "Pozastaviť" : "Prehrať");
   };
@@ -296,7 +329,7 @@
       (ageDays >= 2 ? ` (pred ${ageDays} dňami). Novšie dáta z API mesta zatiaľ nie sú k dispozícii.` : "");
     fresh.classList.toggle("stale", ageDays >= 2);
   }
-  function step(k) { state.day = Math.max(0, Math.min(D.days.length - 1, state.day + k)); render(); }
+  function step(k) { state.day = Math.max(minDay(), Math.min(D.days.length - 1, state.day + k)); render(); }
   for (const [id, key] of [["t-surface", "surface"], ["t-lightnet", "lightnet"], ["t-nodata", "nodata"]])
     $(id).onchange = e => { state[key] = e.target.checked; render(); };
 
@@ -314,6 +347,9 @@
     for (const b of polBox.children) b.setAttribute("aria-pressed", b.dataset.p === p);
     $("guide").innerHTML = `24-hodinová odporúčaná hodnota WHO: <b>${fmtNum(who)} µg/m³</b>` +
       (g.proxy ? `<br><span class="proxy">WHO pre ${g.label} hodnotu neuvádza. Použitá je ${g.proxy}.</span>` : "");
+    for (const b of $("periods").children) b.setAttribute("aria-pressed", b.dataset.period === state.period);
+    slider.min = minDay();
+    $("d0").textContent = fmtShort(D.days[minDay()]);
     slider.value = state.day;
     $("date").textContent = fmtDate(D.days[state.day]);
 
@@ -344,12 +380,24 @@
       markerLayer.addLayer(m);
     });
 
+    // "X z Y": Y = sensors that measure this pollutant and were already installed on this day
+    let installed = 0;
+    for (const [s, d] of firstDay[p]) if (d <= state.day && (state.lightnet || !isLightnet(s))) installed++;
     const above = pts.filter(q => q.ratio > 1).length;
-    $("count").textContent = pts.length
-      ? `${pts.length} ${senzorov(pts.length)} · ${above} nad odporúčaním` : "";
+    $("count").textContent = installed
+      ? `${pts.length} z ${installed} ${installed === 1 ? "senzora" : "senzorov"} merajúcich ${g.label} · ${above} nad odporúčaním` : "";
+
+    const canSurface = pts.length >= MIN_SURFACE;
+    $("t-surface").disabled = !canSurface;
+    $("l-surface").classList.toggle("off", !canSurface);
+    $("l-surface").title = canSurface ? "" : `Plocha sa kreslí, len keď meria aspoň ${MIN_SURFACE} senzorov.`;
     const msg = $("msg");
     if (!pts.length) { msg.hidden = false; msg.textContent = `V daný deň žiadny senzor nenameral platné údaje ${g.label}.`; }
-    else if (pts.length < 3 && state.surface) { msg.hidden = false; msg.textContent = "V daný deň je príliš málo senzorov na interpolovanú plochu."; }
+    else if (!canSurface && state.surface) {
+      msg.hidden = false;
+      msg.textContent = `Plocha sa nekreslí: v daný deň meria ${g.label} len ${pts.length} ${senzorov(pts.length)}, ` +
+        `na spoľahlivý odhad medzi nimi treba aspoň ${MIN_SURFACE}. Zobrazené sú len body.`;
+    }
     else msg.hidden = true;
 
     drawSurface(pts);

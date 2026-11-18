@@ -114,7 +114,8 @@ python -m http.server -d heatmap 8000      # otvor http://localhost:8000 (dlažd
 - Každá znečisťujúca látka je samostatná prepínateľná vrstva. Farba ukazuje denný priemer ÷ 24-hodinová odporúčaná hodnota WHO 2021 na divergentnej logaritmickej škále od 0,25× do 4×, so stredom v 1× (modrá pod, červená nad).
 - Deň sa vyberá posuvníkom s prehrávaním. Mapa zobrazuje body senzorov, popis po prejdení myšou a tabuľku hodnôt v daný deň.
 - PM1 a PM4 nemajú odporúčanú hodnotu WHO, preto sa ako náhrada použijú hodnoty pre PM2.5 a PM10. V rozhraní je to vyznačené.
-- Plocha je IDW na log₂(pomeru), zobrazená do 1,2 km od senzorov (3 km, keď merajú len 8 mestských staníc).
+- Plocha je IDW na log₂(pomeru), zobrazená do 1,2 km od senzorov a len v dňoch, keď meria aspoň 20 senzorov. NO₂, SO₂, CO a PM pred októbrom 2025 (len 8 mestských staníc) sa zobrazujú iba ako body.
+- Prepínač obdobia: „Obe siete“ (od októbra 2025, predvolené) alebo „Celé obdobie“ (od októbra 2023). Počítadlo ukazuje „X z Y senzorov merajúcich …“, kde Y sú senzory nainštalované k danému dňu.
 - Online: https://sugarpowered.github.io/zilina-air-quality-heatmap/
 
 ## 8. Ďalšie kroky
