@@ -6,6 +6,18 @@ Interactive air-quality map of Žilina built from the city's open data and compa
 
 🌐 **Online:** https://sugarpowered.github.io/zilina-air-quality-heatmap/
 
+## 🗺️ What the map shows
+
+- **7 pollutants** as switchable layers: PM1, PM2.5, PM4, PM10, NO₂, SO₂, CO.
+- **Colour = daily mean ÷ WHO 2021 24-hour guideline.** Blue is below the guideline, red is above it (poorer air quality, higher health risk). PM1 and PM4 have no WHO guideline, so they use the PM2.5 and PM10 values.
+- **Day slider** with play, previous/next day and a **Najnovší ⏭** (latest) button. The panel shows the time of the last measurement.
+- **Period toggle:** *Obe siete* (both networks, from 9 Oct 2025, default) or *Celé obdobie* (full period, from 6 Oct 2023). Before October 2025 only the 8 city stations measure.
+- **Sensor count** such as "52 z 123 senzorov merajúcich PM10" (52 of 123 sensors measuring PM10): reporting sensors out of those installed on that day.
+- **Interpolated surface** only when at least 20 sensors report. NO₂, SO₂ and CO come from the 8 city stations only, so they show points only.
+- Hover a sensor for its value. The panel also has a table of all values for the day and a methodology note.
+
+The map interface is in Slovak.
+
 ## 🚀 Getting started
 
 🐍 You need Python 3.10 or newer. Run all commands from the project folder.
@@ -46,7 +58,7 @@ python scripts/prepare_data.py --update
 
 It downloads only the hours newer than the data already in `data/`, so the `docs/` archive isn't needed. If the API is unavailable, it stops with a message and leaves `data/` unchanged.
 
-On GitHub this runs automatically every day ([.github/workflows/update-data.yml](.github/workflows/update-data.yml)): new data is committed and the map is redeployed. The map shows the time of the last measurement, and the **Najnovší ⏭** button jumps to the newest day.
+On GitHub this runs automatically every day at 05:15 UTC ([.github/workflows/update-data.yml](.github/workflows/update-data.yml)): new data is committed and the map is redeployed. If the API is down, the run finishes quietly with a notice and changes nothing. To run it manually: **Actions → Update recent data → Run workflow**.
 
 ## 📁 What's where
 
