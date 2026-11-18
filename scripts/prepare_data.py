@@ -40,6 +40,7 @@ POLLUTANTS = {"airPm1": "pm1", "airPm25": "pm25", "airPm4": "pm4", "airPm10": "p
               "airNo2": "no2", "airSo2": "so2", "airCo": "co"}
 BBOX = dict(lat=(49.13, 49.30), lon=(18.62, 18.86))       # Žilina city + surroundings
 VALID_RANGE = (0, 1000)                                    # µg/m³, outside -> NaN
+VALID_MAX = {"co": 30000}                                  # CO is legitimately > 1000 µg/m³
 # Overlap of both networks (Agdata since 2023-10, Lightnet since 2025-10) in the local archive.
 DEFAULT_WINDOW = ("2025-10-08", "2026-03-25")
 MIN_COVERAGE = 0.30        # share of hours with PM10 inside the window
@@ -135,7 +136,8 @@ def clean_hourly(h: pd.DataFrame, pm_ids: set[str]) -> pd.DataFrame:
     h = h[["timestamp", "station_id", *cols]].rename(columns=POLLUTANTS)
     vals = [POLLUTANTS[c] for c in cols]
     h[vals] = h[vals].apply(pd.to_numeric, errors="coerce")
-    h[vals] = h[vals].where(h[vals].ge(VALID_RANGE[0]) & h[vals].le(VALID_RANGE[1]))
+    for v in vals:
+        h[v] = h[v].where(h[v].between(VALID_RANGE[0], VALID_MAX.get(v, VALID_RANGE[1])))
     return h.dropna(subset=vals, how="all").drop_duplicates(["station_id", "timestamp"]).sort_values(
         ["station_id", "timestamp"])
 

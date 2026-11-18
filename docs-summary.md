@@ -101,7 +101,20 @@ The cleanest sensors are in Zádubnie, Zástranie and Bytčica (PM10 5–10). Am
 3. **Season bias:** Lightnet data starts in Oct 2025. Pull data from the API after 03/2026 to get a summer or full-year comparison.
 4. **Interpolation:** with about 100 points, use IDW or kriging inside the city boundary. Do not draw values beyond the sensor hull or across the river valleys. District-level EAQI is the robust alternative.
 
-## 7. Next steps
+## 7. Heatmap
+
+```bash
+python scripts/prepare_data.py && python scripts/build_heatmap.py
+python -m http.server -d heatmap 8000      # open http://localhost:8000 (OSM tiles need http, not file://)
+```
+
+- [heatmap/index.html](heatmap/index.html) uses Leaflet, OpenStreetMap tiles, and `heatmap/data.js`, which holds daily means for 143 sensors over 814 days.
+- Each pollutant is a switchable layer. The colour shows the daily mean ÷ the WHO 2021 24-h guideline, on a diverging log scale from 0.25× to 4×, centred at 1× (blue below, red above).
+- A day slider with play controls picks the day. The map shows the sensor points, a hover tooltip, and a table of that day's values.
+- PM1 and PM4 have no WHO guideline, so they use the PM2.5 and PM10 guidelines as a proxy, flagged in the UI.
+- The surface is IDW on log₂(ratio), masked to 1.2 km around sensors (3 km when only the 8 city stations report).
+
+## 8. Next steps
 
 1. Run `--source api` to extend data to the present and get the non-heating season.
 2. Calibrate Lightnet against Agdata (collocated pairs, linear plus humidity term).
