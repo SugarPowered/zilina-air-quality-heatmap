@@ -2,6 +2,8 @@
 
 Interaktívna mapa kvality ovzdušia v Žiline z otvorených dát mesta, porovnaná s odporúčaniami WHO.
 
+🌐 **Online:** https://sugarpowered.github.io/zilina-air-quality-heatmap/
+
 ## 🚀 Spustenie
 
 🐍 Potrebuješ Python 3.10 alebo novší. Príkazy spúšťaj v priečinku projektu.
