@@ -1,6 +1,6 @@
-# 🌫️ zilina-air-quality-heatmap
+# 🗺️ zilina-air-quality-heatmap
 
-🗺️ Interaktívna mapa kvality ovzdušia v Žiline z otvorených dát mesta, porovnaná s odporúčaniami WHO.
+Interaktívna mapa kvality ovzdušia v Žiline z otvorených dát mesta, porovnaná s odporúčaniami WHO.
 
 ## 🚀 Spustenie
 
