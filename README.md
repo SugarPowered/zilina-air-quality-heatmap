@@ -1,14 +1,16 @@
 # 🗺️ zilina-air-quality-heatmap
 
-Interaktívna mapa kvality ovzdušia v Žiline z otvorených dát mesta, porovnaná s odporúčaniami WHO.
+**English** | [Slovensky](README-SK.md)
+
+Interactive air-quality map of Žilina built from the city's open data and compared with WHO guidelines.
 
 🌐 **Online:** https://sugarpowered.github.io/zilina-air-quality-heatmap/
 
-## 🚀 Spustenie
+## 🚀 Getting started
 
-🐍 Potrebuješ Python 3.10 alebo novší. Príkazy spúšťaj v priečinku projektu.
+🐍 You need Python 3.10 or newer. Run all commands from the project folder.
 
-**1. Inštalácia (iba prvýkrát)**
+**1. Install (first time only)**
 
 ```bash
 python -m venv .venv
@@ -17,37 +19,41 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-**2. Príprava dát a mapy**
+**2. Prepare the data and the map**
 
 ```bash
 python scripts/prepare_data.py
 python scripts/build_heatmap.py
 ```
 
-**3. Otvorenie mapy**
+**3. Open the map**
 
 ```bash
 python -m http.server -d heatmap 8000
 ```
 
-V prehliadači otvor **http://localhost:8000**. Server zastavíš klávesmi `Ctrl+C`.
+Open **http://localhost:8000** in your browser. Stop the server with `Ctrl+C`.
 
-⚠️ Súbor `index.html` neotváraj priamo dvojklikom, lebo by sa nenačítala mapa OpenStreetMap.
+⚠️ Don't open `index.html` by double-clicking it. The OpenStreetMap background won't load from a local file.
 
-## 🔄 Čerstvé dáta z API mesta (voliteľné)
+## 🔄 Fresh data from the city API (optional)
 
-Bez ďalších parametrov sa použijú archivované dáta z `docs/` (do 25. 3. 2026). Ak chceš aktuálne dáta, v kroku 2 spusti namiesto prvého príkazu:
+By default the scripts use the archived data in `docs/` (up to 25 March 2026). For current data, replace the first command in step 2 with:
 
 ```bash
 python scripts/prepare_data.py --source api --start 2025-10-08 --end 2026-11-18
 ```
 
-## 📁 Čo kde je
+## 📁 What's where
 
-| Cesta | Obsah |
+| Path | Content |
 |---|---|
-| 📚 `docs/` | Archív podkladov z predchádzajúcich projektov |
-| 📝 `docs-summary.md` | Zhrnutie podkladov a zistení |
-| 🛠️ `scripts/` | Skripty na prípravu dát a mapy |
-| 📊 `data/` | Pripravené dáta (generované) |
-| 🗺️ `heatmap/` | Mapa (`index.html` + generovaný `data.js`) |
+| 📚 `docs/` | Archive of materials from earlier projects (not in the repository) |
+| 📝 `docs-summary.md` | Summary of the materials and findings ([Slovak version](docs-summary-sk.md)) |
+| 🛠️ `scripts/` | Scripts that prepare the data and the map |
+| 📊 `data/` | Prepared data (generated) |
+| 🗺️ `heatmap/` | The map (`index.html` + generated `data.js`) |
+
+## 🚢 Deployment
+
+Every push to `main` that changes `heatmap/` is published to GitHub Pages automatically by [.github/workflows/pages.yml](.github/workflows/pages.yml).

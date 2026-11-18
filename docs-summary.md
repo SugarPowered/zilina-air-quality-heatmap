@@ -1,5 +1,7 @@
 # Docs summary: prep for the Žilina air-pollution hotspot heatmap
 
+**English** | [Slovensky](docs-summary-sk.md)
+
 > Source of truth: `docs/KLIMA_24/` (FRI UNIZA student project KLIMA, 2024 to 2026).
 > Prepared data: `data/` via [scripts/prepare_data.py](scripts/prepare_data.py).
 
@@ -73,7 +75,7 @@ python scripts/prepare_data.py --source api --start 2025-10-08 --end 2026-11-18 
 | File | Content |
 |---|---|
 | `data/stations.csv` | 155 sensors: id, name, kind, lat/lon, address, status, `in_bbox`, `dup_coord` |
-| `data/pm_hourly.csv.gz` | 414k cleaned hourly rows (PM1/2.5/4/10, NO₂/SO₂/CO). Values outside 0–1000 are set to NaN. |
+| `data/pm_hourly.csv.gz` | 414k cleaned hourly rows (PM1/2.5/4/10, NO₂/SO₂/CO). Values outside 0–1000 µg/m³ (CO: 0–30 000) are set to NaN. |
 | `data/heatmap_points.csv` | **Heatmap input.** One row per PM sensor: mean/median/p95 PM, EU/WHO exceedance days, coverage, `qc_ok`, `qc_reason` |
 
 **Default window: 2025-10-08 to 2026-03-25.** This is the only period where both networks overlap, and it is the heating season, so results are biased toward winter.
@@ -113,10 +115,11 @@ python -m http.server -d heatmap 8000      # open http://localhost:8000 (OSM til
 - A day slider with play controls picks the day. The map shows the sensor points, a hover tooltip, and a table of that day's values.
 - PM1 and PM4 have no WHO guideline, so they use the PM2.5 and PM10 guidelines as a proxy, flagged in the UI.
 - The surface is IDW on log₂(ratio), masked to 1.2 km around sensors (3 km when only the 8 city stations report).
+- Online: https://sugarpowered.github.io/zilina-air-quality-heatmap/
 
 ## 8. Next steps
 
 1. Run `--source api` to extend data to the present and get the non-heating season.
 2. Calibrate Lightnet against Agdata (collocated pairs, linear plus humidity term).
-3. Build the heatmap: points from `heatmap_points.csv` (`qc_ok`) → IDW/kriging grid, plus a district EAQI layer, with heating and non-heating toggles.
+3. Extend the heatmap (done: §7) with a district EAQI layer and heating / non-heating season toggles.
 4. Overlay context: traffic counters (`docs/.../hluche_miesta/merace.csv`), the gas-network gap (Brodno), and the city priority sites (§3).
