@@ -6,7 +6,7 @@
 
 🐍 Potrebuješ Python 3.10 alebo novší. Príkazy spúšťaj v priečinku projektu.
 
-**1. 📦 Inštalácia (iba prvýkrát)**
+**1. Inštalácia (iba prvýkrát)**
 
 ```bash
 python -m venv .venv
@@ -15,14 +15,14 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-**2. ⚙️ Príprava dát a mapy**
+**2. Príprava dát a mapy**
 
 ```bash
 python scripts/prepare_data.py
 python scripts/build_heatmap.py
 ```
 
-**3. 🌐 Otvorenie mapy**
+**3. Otvorenie mapy**
 
 ```bash
 python -m http.server -d heatmap 8000
