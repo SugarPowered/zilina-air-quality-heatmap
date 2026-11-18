@@ -96,8 +96,12 @@ def classify(st: pd.DataFrame) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------- history
+EXIT_API_UNAVAILABLE = 75   # EX_TEMPFAIL: the daily job treats this as "skip quietly", not as an error
+
+
 def check_api(sid: str) -> None:
-    """Fail fast with a clear message instead of retrying 145 stations against a dead API."""
+    """Fail fast with a clear message instead of retrying 145 stations against a dead API.
+    Exits with EXIT_API_UNAVAILABLE so callers can tell an outage from a real error."""
     now = datetime.now(timezone.utc)
     body = {"itemId": [sid], "type": "hourly",
             "from": (now - timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S.000Z"),
@@ -108,7 +112,8 @@ def check_api(sid: str) -> None:
         if not isinstance(r.json(), list):
             raise ValueError(f"unexpected response: {r.text[:200]}")
     except (requests.RequestException, ValueError) as e:
-        raise SystemExit(f"Open Data API is not available ({e}). Existing data left unchanged.")
+        print(f"Open Data API is not available ({e}). Existing data left unchanged.")
+        raise SystemExit(EXIT_API_UNAVAILABLE)
 
 
 def history_api(ids: list[str], start: str, end: str, chunk_days: int = 30) -> pd.DataFrame:
@@ -233,8 +238,9 @@ def update_recent() -> None:
     end = (datetime.now(timezone.utc) + timedelta(hours=1)).strftime("%Y-%m-%dT%H:00:00")
     print(f"history <- api {start} .. {end} ({len(pm_ids)} PM sensors)")
     new = clean_hourly(history_api(pm_ids, start, end, chunk_days=15), set(pm_ids))
-    if new.empty:
-        raise SystemExit("API returned no new measurements. Existing data left unchanged.")
+    if new.empty:   # not an error: nothing new yet
+        print("API returned no new measurements. Existing data left unchanged.")
+        return
 
     h = (pd.concat([old, new], ignore_index=True)
          .drop_duplicates(["station_id", "timestamp"], keep="last")   # newer API values win

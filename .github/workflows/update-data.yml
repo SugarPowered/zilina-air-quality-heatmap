@@ -1,6 +1,7 @@
 # Daily: fetch new hourly measurements from the Žilina Open Data API, rebuild the map data,
-# commit them to main and redeploy GitHub Pages. If the API is down, the run fails with a clear
-# message and nothing is committed (the map keeps showing the last available data).
+# commit them to main and redeploy GitHub Pages. If the API is down, the run ends quietly as
+# successful with a notice, and nothing is committed (the map keeps the last available data).
+# Any other error (bug, broken data) still fails the run.
 name: Update recent data
 
 on:
@@ -27,11 +28,23 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Fetch new measurements
-        run: python scripts/prepare_data.py --update
+        id: fetch
+        run: |
+          set +e
+          python scripts/prepare_data.py --update
+          code=$?
+          if [ "$code" -eq 75 ]; then   # EXIT_API_UNAVAILABLE in prepare_data.py
+            echo "::notice::Open Data API is unavailable, update skipped. The map keeps the last available data."
+            echo "api=down" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          exit "$code"
       - name: Rebuild heatmap data
+        if: steps.fetch.outputs.api != 'down'
         run: python scripts/build_heatmap.py
       - name: Commit if data changed
         id: commit
+        if: steps.fetch.outputs.api != 'down'
         run: |
           if git diff --quiet -- data/pm_hourly.csv.gz; then
             echo "No new measurements."
