@@ -10,11 +10,12 @@ Interactive air-quality map of Žilina built from the city's open data and compa
 
 - **7 pollutants** as switchable layers: PM1, PM2.5, PM4, PM10, NO₂, SO₂, CO.
 - **Colour = daily mean ÷ WHO 2021 24-hour guideline.** Blue is below the guideline, red is above it (poorer air quality, higher health risk). PM1 and PM4 have no WHO guideline, so they use the PM2.5 and PM10 values.
-- **Day slider** with play, previous/next day and a **Najnovší ⏭** (latest) button. The panel shows the time of the last measurement.
+- **Day slider** with **Prehrať** (play) and **Najnovší ⏭** (latest) buttons. The ← / → arrow keys move one day.
 - **Period toggle:** *Obe siete* (both networks, from 9 Oct 2025, default) or *Celé obdobie* (full period, from 6 Oct 2023). Before October 2025 only the 8 city stations measure.
-- **Sensor count** such as "52 z 123 senzorov merajúcich PM10" (52 of 123 sensors measuring PM10): reporting sensors out of those installed on that day.
+- **Sensor count** such as "52 z 123 senzorov · 4 nad odporúčaním" (52 of 123 sensors, 4 above the guideline): reporting sensors out of those installed on that day.
 - **Interpolated surface** only when at least 20 sensors report. NO₂, SO₂ and CO come from the 8 city stations only, so they show points only.
-- Hover a sensor for its value. The panel also has a table of all values for the day and a methodology note.
+- Hover a sensor for its value. The collapsed **ℹ️ O dátach** (about the data) section holds the last-measurement time, a table of the day's values and a short methodology note.
+- The surface crossfades between days. On a phone the panel is a bottom sheet you can collapse by tapping its handle.
 
 The map interface is in Slovak.
 

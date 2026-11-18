@@ -10,151 +10,151 @@
   :root {
     --surface: #fcfcfb; --surface-2: #f3f2ef; --border: #dddcd7;
     --text-1: #0b0b0b; --text-2: #52514e; --text-3: #75736e;
-    --accent: #2a78d6; --accent-ink: #ffffff; --nodata: #9a9994;
+    --accent: #2a78d6; --accent-ink: #ffffff;
+    --fade: 380ms;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --surface: #1a1a19; --surface-2: #252523; --border: #3a3a37;
       --text-1: #f0efec; --text-2: #c3c2b7; --text-3: #9a998f;
-      --accent: #3987e5; --accent-ink: #ffffff; --nodata: #77756f;
+      --accent: #3987e5; --accent-ink: #ffffff;
     }
   }
   :root[data-theme="dark"] {
     --surface: #1a1a19; --surface-2: #252523; --border: #3a3a37;
     --text-1: #f0efec; --text-2: #c3c2b7; --text-3: #9a998f;
-    --accent: #3987e5; --accent-ink: #ffffff; --nodata: #77756f;
+    --accent: #3987e5; --accent-ink: #ffffff;
   }
+  @media (prefers-reduced-motion: reduce) { :root { --fade: 0ms; } }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--surface); color: var(--text-1);
     font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   #map { position: absolute; inset: 0; }
-  .panel { position: absolute; z-index: 1000; top: 12px; left: 12px; width: 360px;
+
+  /* smooth day-to-day changes: surface crossfade + marker colour transition */
+  .surface-layer { transition: opacity var(--fade) ease; }
+  path.sensor { transition: fill var(--fade) ease; }
+
+  .panel { position: absolute; z-index: 1000; top: 12px; left: 12px; width: 340px;
     max-height: calc(100% - 24px); overflow: auto; background: var(--surface);
-    border: 1px solid var(--border); border-radius: 12px; padding: 16px;
-    box-shadow: 0 4px 18px rgba(0,0,0,.14); }
-  h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -.01em; }
-  .sub { color: var(--text-2); margin: 0 0 14px; font-size: 13px; }
-  .label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase;
-    letter-spacing: .04em; margin: 14px 0 6px; }
+    border: 1px solid var(--border); border-radius: 14px; padding: 18px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+  h1 { font-size: 18px; margin: 0; letter-spacing: -.01em; }
+  .sub { color: var(--text-2); margin: 2px 0 16px; font-size: 13px; }
+
   .seg { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .seg button { padding: 7px 0; border: 1px solid var(--border); white-space: nowrap;
     background: var(--surface-2); color: var(--text-1); border-radius: 8px; cursor: pointer;
-    font: inherit; font-size: 12.5px; font-weight: 600; }
-  .seg.two { grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
-  .seg.two button { font-size: 12px; font-weight: 600; white-space: normal; line-height: 1.25; padding: 6px 4px; }
-  .seg.two small { display: block; font-weight: 400; opacity: .85; }
-  .toggles label.off { color: var(--text-3); cursor: default; }
+    font: inherit; font-size: 12.5px; font-weight: 600; transition: background .15s, color .15s; }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .seg button:focus-visible, .ctl:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .guide { margin-top: 8px; font-size: 13px; color: var(--text-2); }
+  .seg.two { grid-template-columns: 1fr 1fr; margin-top: 16px; }
+  .seg.two button { font-size: 12px; padding: 5px 4px; }
+  .seg.two small { font-weight: 400; opacity: .8; }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .guide { margin-top: 8px; font-size: 12.5px; color: var(--text-2); }
   .guide b { color: var(--text-1); }
-  .proxy { display: inline-block; margin-top: 4px; font-size: 12px; color: var(--text-2);
-    background: var(--surface-2); border-radius: 6px; padding: 2px 6px; }
-  .date-row { display: flex; flex-direction: column; gap: 0; }
-  .date { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
-  .count { font-size: 12px; color: var(--text-2); }
-  input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0 4px; }
-  .steps { display: flex; gap: 4px; }
-  .ctl { flex: 1; padding: 6px 2px; white-space: nowrap; font-size: 13px !important; border: 1px solid var(--border); background: var(--surface-2);
-    color: var(--text-1); border-radius: 8px; cursor: pointer; font: inherit; }
+
+  .date { display: block; margin-top: 14px; font-size: 21px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .count { display: block; font-size: 12.5px; color: var(--text-2); }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin: 10px 0 2px; }
   .range-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); }
-  .toggles label { display: flex; gap: 8px; align-items: center; margin: 4px 0; cursor: pointer; }
-  .legend-bar { height: 12px; border-radius: 6px; margin: 4px 0 2px; }
-  .ticks { position: relative; height: 16px; font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .steps { display: flex; gap: 6px; margin-top: 8px; }
+  .ctl { flex: 1; padding: 7px 4px; white-space: nowrap; border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text-1); border-radius: 8px; cursor: pointer; font: inherit; font-size: 13px; }
+
+  .msg { margin-top: 10px; padding: 7px 10px; border-radius: 8px; background: var(--surface-2);
+    font-size: 12.5px; color: var(--text-2); }
+
+  .legend { margin-top: 16px; }
+  .legend-bar { height: 10px; border-radius: 5px; }
+  .ticks { position: relative; height: 16px; margin-top: 3px; font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums; }
   .ticks span { position: absolute; transform: translateX(-50%); }
   .ticks span:first-child { transform: none; } .ticks span:last-child { transform: translateX(-100%); }
-  .legend-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); gap: 8px; }
-  .legend-ends span:last-child { text-align: right; }
-  .keys { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 12px; color: var(--text-2); }
-  .key { display: inline-flex; align-items: center; gap: 6px; }
-  .dot { width: 12px; height: 12px; border-radius: 50%; background: #f0efec; border: 2px solid #fff;
-    box-shadow: 0 0 0 1px var(--border); }
-  .dot.ref { border: 2.5px solid #1a1a19; width: 14px; height: 14px; box-shadow: 0 0 0 1px var(--text-3); }
-  .dot.none { background: var(--nodata); width: 8px; height: 8px; border: 0; box-shadow: none; }
-  .fresh { margin-top: 8px; font-size: 12px; color: var(--text-2); }
-  .fresh.stale::before { content: "⚠ "; }
-  .msg { margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2);
-    font-size: 13px; color: var(--text-2); }
+  .legend-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); }
+
   details { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
-  summary { cursor: pointer; font-weight: 600; font-size: 13px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
-  th, td { text-align: left; padding: 4px 4px; border-bottom: 1px solid var(--border); }
+  summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text-2); }
+  .about { font-size: 12px; color: var(--text-2); }
+  .about p { margin: 8px 0; }
+  .about h2 { font-size: 12px; margin: 14px 0 4px; color: var(--text-1); }
+  .stale { color: var(--text-1); }
+  .keys { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .key { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #f0efec; border: 1.5px solid #fff;
+    box-shadow: 0 0 0 1px var(--border); }
+  .dot.ref { border: 2px solid #1a1a19; width: 13px; height: 13px; box-shadow: 0 0 0 1px var(--text-3); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 4px; border-bottom: 1px solid var(--border); }
   th { color: var(--text-2); font-weight: 600; white-space: nowrap; }
   td.n, th.n { text-align: right; }
-  .note { font-size: 12px; color: var(--text-2); }
-  .note p { margin: 6px 0; }
+
   .leaflet-tooltip.aq { background: var(--surface); color: var(--text-1); border: 1px solid var(--border);
     border-radius: 8px; padding: 8px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.18); font: 13px/1.4 system-ui, sans-serif; }
   .leaflet-tooltip.aq::before { display: none; }
   .tt-name { font-weight: 650; } .tt-sub { color: var(--text-2); font-size: 12px; }
   .tt-val { font-size: 16px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 4px; }
+
+  .grip { display: none; }
   @media (max-width: 640px) {
-    .panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 52%;
-      border-radius: 12px 12px 0 0; padding: 12px 16px; }
-    .leaflet-bottom.leaflet-right { bottom: 52%; }
+    /* bottom sheet; tap the handle to collapse it to the date + count */
+    .panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 50%;
+      border-radius: 16px 16px 0 0; padding: 6px 16px 14px; transition: max-height var(--fade) ease; }
+    .grip { display: block; width: 100%; height: 22px; margin: 0 0 4px; border: 0; background: none; cursor: pointer; }
+    .grip::before { content: ""; display: block; width: 40px; height: 4px; margin: 0 auto;
+      border-radius: 2px; background: var(--border); }
+    .panel.collapsed { max-height: 130px; overflow: hidden; }
+    .panel.collapsed > :not(.peek) { display: none; }
+    .sub { margin-bottom: 12px; }
   }
 </style>
 </head>
 <body>
 <div id="map" role="application" aria-label="Mapa Žiliny s plochou kvality ovzdušia a polohou senzorov"></div>
 
-<aside class="panel" aria-label="Ovládanie mapy">
-  <h1>Kvalita ovzdušia v Žiline podľa odporúčaní WHO</h1>
-  <p class="sub">Denná priemerná koncentrácia ÷ 24-hodinová odporúčaná hodnota WHO 2021. Hodnoty nad 1× znamenajú horšiu kvalitu ovzdušia a vyššie zdravotné riziko.</p>
+<aside class="panel" id="panel" aria-label="Ovládanie mapy">
+  <button class="grip peek" id="grip" aria-label="Zbaliť panel" aria-expanded="true"></button>
+  <h1 class="peek">Kvalita ovzdušia v Žiline</h1>
+  <p class="sub">Denný priemer v porovnaní s odporúčaním WHO.</p>
 
-  <div class="label" id="pol-label">Znečisťujúca látka</div>
-  <div class="seg" id="pollutants" role="group" aria-labelledby="pol-label"></div>
+  <div class="seg" id="pollutants" role="group" aria-label="Znečisťujúca látka"></div>
   <div class="guide" id="guide"></div>
 
-  <div class="label">Deň</div>
   <div class="seg two" id="periods" role="group" aria-label="Obdobie">
-    <button data-period="both">Obe siete<small id="per-both"></small></button>
-    <button data-period="all">Celé obdobie<small id="per-all"></small></button>
+    <button data-period="both">Obe siete <small id="per-both"></small></button>
+    <button data-period="all">Celé obdobie <small id="per-all"></small></button>
   </div>
-  <div class="date-row"><span class="date" id="date"></span><span class="count" id="count"></span></div>
-  <input type="range" id="slider" min="0" value="0" aria-label="Deň">
+
+  <span class="date peek" id="date"></span>
+  <span class="count peek" id="count"></span>
+  <input type="range" id="slider" min="0" value="0" aria-label="Deň (šípky ← → posúvajú o deň)">
   <div class="range-ends"><span id="d0"></span><span id="d1"></span></div>
-  <div class="steps" style="margin-top:6px">
-    <button class="ctl" id="prev" aria-label="Predchádzajúci deň">◀ Deň</button>
+  <div class="steps">
     <button class="ctl" id="play" aria-label="Prehrať">▶ Prehrať</button>
-    <button class="ctl" id="next" aria-label="Nasledujúci deň">Deň ▶</button>
     <button class="ctl" id="latest" aria-label="Najnovší deň s dátami">Najnovší ⏭</button>
-  </div>
-  <div class="fresh" id="fresh"></div>
-
-  <div class="label">Vrstvy</div>
-  <div class="toggles">
-    <label id="l-surface"><input type="checkbox" id="t-surface" checked> Interpolovaná plocha</label>
-    <label><input type="checkbox" id="t-lightnet" checked> Nízkonákladové senzory na stĺpoch osvetlenia (Lightnet)</label>
-    <label><input type="checkbox" id="t-nodata"> Senzory bez údajov v daný deň</label>
-  </div>
-
-  <div class="label">Pomer k odporúčaniu WHO</div>
-  <div class="legend-bar" id="legend-bar"></div>
-  <div class="ticks" id="ticks"></div>
-  <div class="legend-ends"><span>◀ Pod odporúčaním<br>nižšie zdravotné riziko</span><span>Nad odporúčaním ▶<br>vyššie zdravotné riziko</span></div>
-  <div class="keys">
-    <span class="key"><span class="dot ref"></span>Mestská stanica (Agdata)</span>
-    <span class="key"><span class="dot"></span>Senzor na stĺpe osvetlenia</span>
-    <span class="key"><span class="dot none"></span>Bez údajov</span>
   </div>
   <div class="msg" id="msg" hidden></div>
 
-  <details>
-    <summary>Hodnoty senzorov v daný deň</summary>
-    <table><thead><tr><th>Senzor</th><th class="n">µg/m³</th><th class="n">× WHO</th></tr></thead>
-      <tbody id="tbody"></tbody></table>
-  </details>
+  <div class="legend" aria-label="Legenda: pomer k odporúčaniu WHO">
+    <div class="legend-bar" id="legend-bar"></div>
+    <div class="ticks" id="ticks"></div>
+    <div class="legend-ends"><span>čistejší vzduch</span><span>horší vzduch</span></div>
+  </div>
 
   <details>
-    <summary>Metodika a obmedzenia</summary>
-    <div class="note">
-      <p><b>Údaje:</b> hodinová história senzorov z Open Data portálu mesta Žilina, spriemerovaná za každý senzor a kalendárny deň (miestny čas). Deň sa započíta, len ak má aspoň 18 platných hodín.</p>
-      <p><b>Odporúčané hodnoty (24 h, µg/m³):</b> PM2.5 15, PM10 45, NO₂ 25, SO₂ 40, CO 4000. Pre PM1 a PM4 WHO hodnotu neuvádza, preto sa použije hodnota frakcie, ktorej sú súčasťou (PM2.5 a PM10).</p>
-      <p><b>Plocha:</b> interpolácia vážená inverznou vzdialenosťou (IDW) na logaritme pomeru. Je to odhad a zobrazuje sa len do 1,2 km od senzorov. Kreslí sa, len keď v daný deň meria aspoň 20 senzorov. Pri NO₂, SO₂, CO a pri prachových časticiach pred októbrom 2025 meria len 8 mestských staníc, preto mapa ukazuje iba body.</p>
-      <p><b>Obdobie:</b> „Obe siete“ začína prvým celým dňom dát Lightnet (október 2025), keď k 8 mestským staniciam pribudli senzory na stĺpoch osvetlenia. „Celé obdobie“ siaha do októbra 2023, ale dovtedy merajú len mestské stanice.</p>
-      <p><b>Senzory na stĺpoch osvetlenia</b> sú nekalibrované nízkonákladové optické senzory. Ich hodnoty PM2.5 a PM10 sú takmer rovnaké. Berte ich ako relatívne rozdiely, nie presné koncentrácie.</p>
-      <p><b>NO₂, SO₂, CO</b> meria len 8 mestských staníc. Hodnoty SO₂ sú blízko hranice detekcie.</p>
+    <summary>ℹ️ O dátach</summary>
+    <div class="about">
+      <p id="fresh"></p>
+      <div class="keys">
+        <span class="key"><span class="dot ref"></span>Mestská stanica (8)</span>
+        <span class="key"><span class="dot"></span>Senzor na stĺpe osvetlenia</span>
+      </div>
+      <h2>Hodnoty v daný deň</h2>
+      <table><thead><tr><th>Senzor</th><th class="n">µg/m³</th><th class="n">× WHO</th></tr></thead>
+        <tbody id="tbody"></tbody></table>
+      <h2>Ako čítať mapu</h2>
+      <p>Farba je denný priemer delený 24-hodinovou odporúčanou hodnotou WHO 2021. Nad 1× znamená horšiu kvalitu ovzdušia a vyššie zdravotné riziko. Deň sa započíta, ak má senzor aspoň 18 platných hodín.</p>
+      <p>Plocha medzi senzormi je odhad (interpolácia IDW) a kreslí sa, len keď meria aspoň 20 senzorov. NO₂, SO₂ a CO meria len 8 mestských staníc, preto sú zobrazené iba ako body. Rovnako prachové častice pred októbrom 2025, keď ešte nemerali senzory na stĺpoch osvetlenia.</p>
+      <p>Senzory na stĺpoch osvetlenia sú nekalibrované nízkonákladové senzory. Berte ich ako relatívne rozdiely, nie presné koncentrácie. Zdroj: Open Data portál mesta Žilina.</p>
     </div>
   </details>
 </aside>
@@ -166,6 +166,7 @@
   const D = window.AQ_DATA;
   const POLS = Object.keys(D.guidelines);
   const ST = D.stations;
+  const $ = id => document.getElementById(id);
 
   // ---------- color: diverging blue <-> red, neutral gray at ratio 1 (log2 domain [-2, 2])
   const STOPS = [[-2, "#0d366b"], [-1, "#2a78d6"], [-0.4, "#9ec5f4"], [0, "#f0efec"],
@@ -188,35 +189,32 @@
   const fmtRatio = r => (r < 10 ? r.toFixed(2) : r.toFixed(1)).replace(".", ",") + "×";
   // Slovak plural: 1 senzor, 2–4 senzory, 0 / 5+ senzorov
   const senzorov = n => n === 1 ? "senzor" : (n >= 2 && n <= 4 ? "senzory" : "senzorov");
+  const fmtShort = s => new Date(s + "T12:00:00").toLocaleDateString("sk-SK");
+  const fmtDate = s => new Date(s + "T12:00:00").toLocaleDateString("sk-SK",
+    { weekday: "short", day: "numeric", month: "long", year: "numeric" });
 
-  // ---------- index: values[p][day] -> Map(stationIdx -> µg/m³)
-  const byDay = {};
+  // ---------- index: byDay[p] = Map(day -> Map(stationIdx -> µg/m³))
+  const byDay = {}, firstDay = {};
   for (const p of POLS) {
-    const m = byDay[p] = new Map();
+    const m = byDay[p] = new Map(), f = firstDay[p] = new Map();
     for (const [d, s, v] of D.values[p]) {
       if (!m.has(d)) m.set(d, new Map());
       m.get(d).set(s, v);
+      if (!f.has(s) || d < f.get(s)) f.set(s, d);   // first reporting day -> "installed" count
     }
   }
-
-  // first day each station reported each pollutant -> "installed" sensors for the "X z Y" count
-  const firstDay = {};
-  for (const p of POLS) {
-    const f = firstDay[p] = new Map();
-    for (const [d, s] of D.values[p]) if (!f.has(s) || d < f.get(s)) f.set(s, d);
-  }
-  // "both networks" period starts on the first day a Lightnet sensor reports PM10
+  // "both networks" period starts on the first day a lamp-post (Lightnet) sensor reports PM10
   const isLightnet = i => ST[i].kind === "lightnet_pm";
   let BOTH_START = 0;
   { let m = Infinity; for (const [s, d] of firstDay.pm10) if (isLightnet(s) && d < m) m = d;
     if (m !== Infinity) BOTH_START = m; }
   const MIN_SURFACE = 20;   // fewer reporting sensors -> points only, no interpolated surface
+  const LAST = D.days.length - 1;
 
   // ---------- state
-  const state = { pol: "pm10", day: 0, period: "both", surface: true, lightnet: true, nodata: false, playing: null };
+  const state = { pol: "pm10", day: LAST, period: "both", playing: null };
   const minDay = () => state.period === "both" ? BOTH_START : 0;
-  // start on the latest day where many sensors report PM10
-  for (let d = D.days.length - 1; d >= 0; d--) {
+  for (let d = LAST; d >= 0; d--) {   // start on the latest day where many sensors report PM10
     const m = byDay.pm10.get(d); if (m && m.size >= 50) { state.day = d; break; }
   }
 
@@ -225,65 +223,75 @@
   const B = { s: Math.min(...lats) - 0.02, n: Math.max(...lats) + 0.02,
               w: Math.min(...lons) - 0.03, e: Math.max(...lons) + 0.03 };
   const mobile = window.innerWidth <= 640;
-  const map = L.map("map", { zoomControl: false, preferCanvas: true })
+  const map = L.map("map", { zoomControl: false, attributionControl: false })
     .fitBounds([[B.s + 0.015, B.w + 0.02], [B.n - 0.015, B.e - 0.02]], mobile
-      ? { paddingBottomRight: [0, window.innerHeight * 0.52] }
-      : { paddingTopLeft: [384, 0] });   // keep the city clear of the control panel
+      ? { paddingBottomRight: [0, window.innerHeight * 0.5] }
+      : { paddingTopLeft: [364, 0] });   // keep the city clear of the control panel
   L.control.zoom({ position: "topright" }).addTo(map);
+  L.control.attribution({ position: mobile ? "topleft" : "bottomright", prefix: false }).addTo(map);
   window.aqMap = map;   // handy for debugging in the console
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: '&copy; prispievatelia <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · údaje: <a href="https://opendata.zilina.sk">Open Data Žilina</a>'
   }).addTo(map);
 
-  // surface: canvas grid -> image overlay
+  // ---------- surface: IDW grid on a canvas, shown through two image overlays that crossfade
   const KM_LAT = 110.57, KM_LON = 111.32 * Math.cos((B.s + B.n) / 2 * Math.PI / 180);
   const COLS = Math.round((B.e - B.w) * KM_LON / 0.06), ROWS = Math.round((B.n - B.s) * KM_LAT / 0.06);
   const cv = document.createElement("canvas"); cv.width = COLS; cv.height = ROWS;
   const ctx = cv.getContext("2d"), img = ctx.createImageData(COLS, ROWS);
-  const overlay = L.imageOverlay(cv.toDataURL(), [[B.s, B.w], [B.n, B.e]], { opacity: 1, interactive: false }).addTo(map);
+  const bounds = [[B.s, B.w], [B.n, B.e]];
+  const layers = [0, 1].map(() => L.imageOverlay(cv.toDataURL(), bounds,
+    { opacity: 0, interactive: false, className: "surface-layer" }).addTo(map));
+  let front = 0;
   const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const R = 1.4;            // km: surface fades out by this distance from the nearest sensor
+  const SOFT = 0.25 * 0.25; // km²: kernel softening, avoids sharp "bullseyes" but keeps single-sensor hotspots
+  const MAX_A = 0.62;
 
+  let frame = 0;   // only the newest frame may fade in (fast slider drags queue several loads)
   function drawSurface(pts) {
+    const id = ++frame;
+    if (pts.length < MIN_SURFACE) { layers.forEach(l => l.setOpacity(0)); return; }
     img.data.fill(0);
-    if (state.surface && pts.length >= MIN_SURFACE) {
-      const R = 1.2, MAX_A = 0.68;
-      const px = pts.map(p => (p.lon - B.w) * KM_LON), py = pts.map(p => (B.n - p.lat) * KM_LAT);
-      const pv = pts.map(p => Math.log2(p.ratio));
-      const cw = (B.e - B.w) * KM_LON / COLS, ch = (B.n - B.s) * KM_LAT / ROWS;
-      for (let r = 0; r < ROWS; r++) {
-        const y = (r + 0.5) * ch;
-        for (let c = 0; c < COLS; c++) {
-          const x = (c + 0.5) * cw;
-          let ws = 0, vs = 0, dmin = 1e9;
-          for (let i = 0; i < px.length; i++) {
-            const dx = x - px[i], dy = y - py[i], d2 = dx * dx + dy * dy + 0.0025;
-            if (d2 < dmin) dmin = d2;
-            const w = 1 / d2; ws += w; vs += w * pv[i];
-          }
-          const dist = Math.sqrt(dmin), a = MAX_A * (1 - smooth(R * 0.55, R, dist));
-          if (a <= 0.01) continue;
-          const col = rgb(vs / ws), o = (r * COLS + c) * 4;
-          img.data[o] = col[0]; img.data[o + 1] = col[1]; img.data[o + 2] = col[2]; img.data[o + 3] = a * 255;
+    const px = pts.map(p => (p.lon - B.w) * KM_LON), py = pts.map(p => (B.n - p.lat) * KM_LAT);
+    const pv = pts.map(p => Math.log2(p.ratio));
+    const cw = (B.e - B.w) * KM_LON / COLS, ch = (B.n - B.s) * KM_LAT / ROWS;
+    for (let r = 0; r < ROWS; r++) {
+      const y = (r + 0.5) * ch;
+      for (let c = 0; c < COLS; c++) {
+        const x = (c + 0.5) * cw;
+        let ws = 0, vs = 0, dmin = 1e9;
+        for (let i = 0; i < px.length; i++) {
+          const dx = x - px[i], dy = y - py[i], d2 = dx * dx + dy * dy;
+          if (d2 < dmin) dmin = d2;
+          const w = 1 / (d2 + SOFT); ws += w; vs += w * pv[i];   // softened inverse-square
         }
+        const a = MAX_A * (1 - smooth(R * 0.4, R, Math.sqrt(dmin)));
+        if (a <= 0.01) continue;
+        const col = rgb(vs / ws), o = (r * COLS + c) * 4;
+        img.data[o] = col[0]; img.data[o + 1] = col[1]; img.data[o + 2] = col[2]; img.data[o + 3] = a * 255;
       }
     }
     ctx.putImageData(img, 0, 0);
-    overlay.setUrl(cv.toDataURL());
+    // load the new frame into the hidden layer, then crossfade
+    const back = 1 - front, next = layers[back], prev = layers[front];
+    next.once("load", () => { if (id === frame) { next.setOpacity(1); prev.setOpacity(0); } });
+    next.setUrl(cv.toDataURL());
+    front = back;
   }
 
-  // sensor markers
-  const markerLayer = L.layerGroup().addTo(map);
-  const markers = ST.map((s, i) => {
+  // ---------- sensor markers (SVG, so their colour can transition)
+  const markerLayer = L.featureGroup().addTo(map);
+  const markers = ST.map(s => {
     const ref = s.kind === "agdata_full";
-    const m = L.circleMarker([s.lat, s.lon], { radius: ref ? 8 : 6, weight: ref ? 2.5 : 2,
-      color: ref ? "#1a1a19" : "#ffffff", fillOpacity: 1 });
-    m.bindTooltip("", { className: "aq", direction: "top", offset: [0, -8] });
+    const m = L.circleMarker([s.lat, s.lon], { radius: ref ? 6.5 : 4.5, weight: ref ? 2 : 1.5,
+      color: ref ? "#1a1a19" : "#ffffff", fillOpacity: 1, className: "sensor" });
+    m.bindTooltip("", { className: "aq", direction: "top", offset: [0, -6] });
     return m;
   });
 
-  // ---------- UI
-  const $ = id => document.getElementById(id);
+  // ---------- controls
   const polBox = $("pollutants");
   for (const p of POLS) {
     const b = document.createElement("button");
@@ -292,9 +300,8 @@
     polBox.appendChild(b);
   }
   const slider = $("slider");
-  slider.max = D.days.length - 1;
-  const fmtShort = s => new Date(s + "T12:00:00").toLocaleDateString("sk-SK");
-  $("d1").textContent = fmtShort(D.days[D.days.length - 1]);
+  slider.max = LAST;
+  $("d1").textContent = fmtShort(D.days[LAST]);
   $("per-both").textContent = "od " + fmtShort(D.days[BOTH_START]);
   $("per-all").textContent = "od " + fmtShort(D.days[0]);
   for (const b of $("periods").children) b.onclick = () => {
@@ -303,51 +310,55 @@
     render();
   };
   slider.oninput = () => { state.day = +slider.value; render(); };
-  $("prev").onclick = () => step(-1);
-  $("next").onclick = () => step(1);
+  const step = k => { state.day = Math.max(minDay(), Math.min(LAST, state.day + k)); render(); };
+  // ← / → step one day from anywhere on the page (the slider handles its own keys when focused)
+  document.addEventListener("keydown", e => {
+    if (e.target === slider || e.target.closest(".leaflet-container") || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowLeft") { step(-1); e.preventDefault(); }
+    if (e.key === "ArrowRight") { step(1); e.preventDefault(); }
+  });
   $("play").onclick = () => {
     if (state.playing) { clearInterval(state.playing); state.playing = null; }
     else {
-      if (state.day >= D.days.length - 1) state.day = minDay();   // replay from the period start
-      state.playing = setInterval(() => { if (state.day >= D.days.length - 1) $("play").click(); else step(1); }, 450);
+      if (state.day >= LAST) state.day = minDay();   // replay from the period start
+      state.playing = setInterval(() => { if (state.day >= LAST) $("play").click(); else step(1); }, 550);
     }
     $("play").textContent = state.playing ? "❚❚ Pauza" : "▶ Prehrať";
     $("play").setAttribute("aria-label", state.playing ? "Pozastaviť" : "Prehrať");
   };
-  // jump to the newest day that has data for the selected pollutant
-  $("latest").onclick = () => {
-    for (let d = D.days.length - 1; d >= 0; d--) if (byDay[state.pol].has(d)) { state.day = d; break; }
+  $("latest").onclick = () => {   // newest day that has data for the selected pollutant
+    for (let d = LAST; d >= 0; d--) if (byDay[state.pol].has(d)) { state.day = d; break; }
     render();
   };
+  // mobile bottom sheet
+  $("grip").onclick = () => {
+    const c = $("panel").classList.toggle("collapsed");
+    $("grip").setAttribute("aria-expanded", !c);
+    $("grip").setAttribute("aria-label", c ? "Rozbaliť panel" : "Zbaliť panel");
+  };
+
   // data freshness (fields added by build_heatmap.py; older data.js files lack them)
   if (D.last_measurement) {
     const last = new Date(D.last_measurement), ageDays = Math.floor((Date.now() - last) / 864e5);
     const when = last.toLocaleString("sk-SK", { day: "numeric", month: "numeric", year: "numeric",
                                                 hour: "2-digit", minute: "2-digit" });
-    const fresh = $("fresh");
-    fresh.textContent = `Posledné meranie: ${when}` +
-      (ageDays >= 2 ? ` (pred ${ageDays} dňami). Novšie dáta z API mesta zatiaľ nie sú k dispozícii.` : "");
-    fresh.classList.toggle("stale", ageDays >= 2);
+    $("fresh").innerHTML = `Posledné meranie: <b>${when}</b>` + (ageDays >= 2
+      ? `<br><span class="stale">⚠ Pred ${ageDays} dňami. Novšie dáta z API mesta zatiaľ nie sú k dispozícii.</span>` : "");
   }
-  function step(k) { state.day = Math.max(minDay(), Math.min(D.days.length - 1, state.day + k)); render(); }
-  for (const [id, key] of [["t-surface", "surface"], ["t-lightnet", "lightnet"], ["t-nodata", "nodata"]])
-    $(id).onchange = e => { state[key] = e.target.checked; render(); };
 
   // legend
   $("legend-bar").style.background = "linear-gradient(to right," +
     STOPS.map(([t, h]) => `${h} ${((t + 2) / 4 * 100).toFixed(1)}%`).join(",") + ")";
-  $("ticks").innerHTML = [0.25, 0.5, 1, 2, 4].map(r =>
+  $("ticks").innerHTML = [0.25, 1, 4].map(r =>
     `<span style="left:${(Math.log2(r) + 2) / 4 * 100}%">${String(r).replace(".", ",")}×</span>`).join("");
 
-  const fmtDate = s => new Date(s + "T12:00:00").toLocaleDateString("sk-SK",
-    { weekday: "short", day: "numeric", month: "long", year: "numeric" });
-
+  // ---------- render
   function render() {
     const p = state.pol, g = D.guidelines[p], who = g.who;
     for (const b of polBox.children) b.setAttribute("aria-pressed", b.dataset.p === p);
-    $("guide").innerHTML = `24-hodinová odporúčaná hodnota WHO: <b>${fmtNum(who)} µg/m³</b>` +
-      (g.proxy ? `<br><span class="proxy">WHO pre ${g.label} hodnotu neuvádza. Použitá je ${g.proxy}.</span>` : "");
     for (const b of $("periods").children) b.setAttribute("aria-pressed", b.dataset.period === state.period);
+    $("guide").innerHTML = `Odporúčanie WHO (24 h): <b>${fmtNum(who)} µg/m³</b>` +
+      (g.proxy ? `<br>${g.label} nemá vlastné odporúčanie, použitá je ${g.proxy}.` : "");
     slider.min = minDay();
     $("d0").textContent = fmtShort(D.days[minDay()]);
     slider.value = state.day;
@@ -355,48 +366,33 @@
 
     const vals = byDay[p].get(state.day) || new Map();
     const pts = [];
-    markerLayer.clearLayers();
     ST.forEach((s, i) => {
-      if (!state.lightnet && s.kind === "lightnet_pm") return;
-      const v = vals.get(i), m = markers[i], ref = s.kind === "agdata_full";
-      const kindTxt = ref ? "Mestská stanica (Agdata)" : "Nízkonákladový senzor na stĺpe osvetlenia";
-      if (v === undefined) {
-        if (!state.nodata) return;
-        m.setStyle({ fillColor: getComputedStyle(document.documentElement).getPropertyValue("--nodata").trim(),
-          radius: 4, weight: 0, fillOpacity: 0.7 });
-        m.setTooltipContent(`<div class="tt-name">${s.name}</div><div class="tt-sub">${s.area} · ${kindTxt}</div>
-          <div class="tt-sub" style="margin-top:4px">V daný deň bez platných údajov ${g.label}</div>`);
-      } else {
-        const ratio = v / who;
-        pts.push({ lat: s.lat, lon: s.lon, ratio: Math.max(ratio, 1e-3), name: s.name, area: s.area, v, ref });
-        m.setStyle({ fillColor: css(rgb(Math.log2(Math.max(ratio, 1e-3)))), radius: ref ? 8 : 6,
-          weight: ref ? 2.5 : 2, color: ref ? "#1a1a19" : "#ffffff", fillOpacity: 1 });
-        const verdict = ratio > 1 ? "Nad odporúčaním WHO: horšia kvalita ovzdušia, vyššie zdravotné riziko"
-                                  : "Na úrovni odporúčania WHO alebo pod ním";
-        m.setTooltipContent(`<div class="tt-name">${s.name}</div><div class="tt-sub">${s.area} · ${kindTxt}</div>
-          <div class="tt-val">${fmtNum(v)} µg/m³ · ${fmtRatio(ratio)}</div>
-          <div class="tt-sub">Denný priemer ${g.label}. ${verdict}</div>`);
-      }
-      markerLayer.addLayer(m);
+      const v = vals.get(i), m = markers[i];
+      if (v === undefined) { markerLayer.removeLayer(m); return; }
+      const ratio = Math.max(v / who, 1e-3), ref = s.kind === "agdata_full";
+      pts.push({ ratio, name: s.name, area: s.area, v, lat: s.lat, lon: s.lon });
+      if (!markerLayer.hasLayer(m)) markerLayer.addLayer(m);
+      m.setStyle({ fillColor: css(rgb(Math.log2(ratio))) });
+      m.setTooltipContent(`<div class="tt-name">${s.name}</div>
+        <div class="tt-sub">${s.area} · ${ref ? "mestská stanica" : "senzor na stĺpe osvetlenia"}</div>
+        <div class="tt-val">${fmtNum(v)} µg/m³ · ${fmtRatio(ratio)}</div>
+        <div class="tt-sub">${ratio > 1 ? "Nad odporúčaním WHO: horšia kvalita ovzdušia, vyššie zdravotné riziko"
+                                        : "Na úrovni odporúčania WHO alebo pod ním"}</div>`);
     });
+    markerLayer.eachLayer(l => { if (l.options.color === "#1a1a19") l.bringToFront(); });   // city stations on top
 
     // "X z Y": Y = sensors that measure this pollutant and were already installed on this day
     let installed = 0;
-    for (const [s, d] of firstDay[p]) if (d <= state.day && (state.lightnet || !isLightnet(s))) installed++;
+    for (const d of firstDay[p].values()) if (d <= state.day) installed++;
     const above = pts.filter(q => q.ratio > 1).length;
     $("count").textContent = installed
-      ? `${pts.length} z ${installed} ${installed === 1 ? "senzora" : "senzorov"} merajúcich ${g.label} · ${above} nad odporúčaním` : "";
+      ? `${pts.length} z ${installed} ${installed === 1 ? "senzora" : "senzorov"} · ${above} nad odporúčaním` : "";
 
-    const canSurface = pts.length >= MIN_SURFACE;
-    $("t-surface").disabled = !canSurface;
-    $("l-surface").classList.toggle("off", !canSurface);
-    $("l-surface").title = canSurface ? "" : `Plocha sa kreslí, len keď meria aspoň ${MIN_SURFACE} senzorov.`;
     const msg = $("msg");
     if (!pts.length) { msg.hidden = false; msg.textContent = `V daný deň žiadny senzor nenameral platné údaje ${g.label}.`; }
-    else if (!canSurface && state.surface) {
+    else if (pts.length < MIN_SURFACE) {
       msg.hidden = false;
-      msg.textContent = `Plocha sa nekreslí: v daný deň meria ${g.label} len ${pts.length} ${senzorov(pts.length)}, ` +
-        `na spoľahlivý odhad medzi nimi treba aspoň ${MIN_SURFACE}. Zobrazené sú len body.`;
+      msg.textContent = `Len ${pts.length} ${senzorov(pts.length)}, preto bez plochy, iba body.`;
     }
     else msg.hidden = true;
 
