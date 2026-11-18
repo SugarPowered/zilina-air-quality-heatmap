@@ -1,4 +1,5 @@
 # Publishes the heatmap/ folder (index.html + data.js) to GitHub Pages on every push to main.
+# Requires Settings -> Pages -> Source: "GitHub Actions". Manual run: Actions -> this workflow -> Run workflow.
 name: Deploy heatmap to GitHub Pages
 
 on:
